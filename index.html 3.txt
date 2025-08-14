@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Цитатогенератор — вдохновение одним кликом</title>
+<meta name="description" content="Красивые анимации и генератор цитат. Добавляйте свои, копируйте и делитесь.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1: #0ea5e9;
+    --bg2: #9333ea;
+    --bg3: #f59e0b;
+    --glass: rgba(255,255,255,.10);
+    --glass-strong: rgba(255,255,255,.25);
+    --text: #eaf2ff;
+    --muted: #c4d0ff;
+    --card: rgba(8, 12, 24, .6);
+    --shadow: 0 20px 60px rgba(0,0,0,.35);
+    --accent: #22d3ee;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --text: #0b1220;
+      --muted: #475569;
+      --card: rgba(255,255,255,.6);
+      --glass: rgba(255,255,255,.55);
+      --glass-strong: rgba(255,255,255,.75);
+      --shadow: 0 20px 60px rgba(19, 21, 43, .15);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    color:var(--text);
+    font:16px/1.6 Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    overflow-x:hidden;
+    background: radial-gradient(1200px 800px at 10% 10%, rgba(255,255,255,.06), transparent 60%),
+                radial-gradient(1200px 800px at 90% 90%, rgba(255,255,255,.06), transparent 60%);
+  }
+  .sky{
+    position:fixed; inset:0; z-index:-2;
+    background: conic-gradient(from 180deg at 50% 50%, var(--bg1), var(--bg2), var(--bg3), var(--bg1));
+    filter: saturate(120%);
+    animation: spin 18s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .blob{
+    position:fixed; border-radius:40% 60% 55% 45% / 55% 45% 55% 45%;
+    background: var(--glass);
+    filter: blur(10px) saturate(140%);
+    animation: float 14s ease-in-out infinite alternate;
+    z-index:-1;
+  }
+  .blob:nth-child(1){width:40vmax; height:40vmax; top:-10vmax; left:-10vmax;}
+  .blob:nth-child(2){width:35vmax; height:35vmax; bottom:-6vmax; right:-6vmax; animation-duration: 16s;}
+  .blob:nth-child(3){width:25vmax; height:25vmax; top:50%; left:70%; transform:translate(-50%,-50%); animation-duration: 20s;}
+  @keyframes float{
+    0%{transform:translateY(0) rotate(0deg)}
+    100%{transform:translateY(-30px) rotate(10deg)}
+  }
+  .wrap{
+    min-height:100%;
+    display:grid;
+    place-items:center;
+    padding: clamp(24px, 4vw, 64px);
+  }
+  header{
+    position:fixed; top:16px; left:50%; transform:translateX(-50%);
+    background: var(--glass);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 999px;
+    padding: 10px 18px;
+    box-shadow: var(--shadow);
+    display:flex; gap:10px; align-items:center;
+    user-select:none;
+  }
+  header .dot{
+    width:10px; height:10px; border-radius:50%;
+    background: var(--accent); box-shadow:0 0 20px var(--accent);
+  }
+  header b{letter-spacing:.4px}
+  main{width:min(900px, 100%);}
+  .card{
+    background:var(--card);
+    backdrop-filter: blur(18px) saturate(130%);
+    border:1px solid rgba(255,255,255,.25);
+    border-radius: 28px;
+    padding: clamp(22px, 3.2vw, 34px);
+    box-shadow: var(--shadow);
+    transform-style: preserve-3d;
+    transition: transform .6s cubic-bezier(.2,.8,.2,1);
+  }
+  .card:hover{transform: translateY(-2px)}
+  .title{display:flex; align-items:center; gap:12px; margin: 2px 0 12px;}
+  .logo{
+    width:40px; height:40px; border-radius:14px;
+    display:grid; place-items:center;
+    background: linear-gradient(135deg, rgba(255,255,255,.7), rgba(255,255,255,.2));
+    color:#0b1220; font-weight:800;
+    text-shadow: 0 1px 0 rgba(255,255,255,.6);
+    transform: translateZ(20px);
+  }
+  h1{
+    font-family: "Playfair Display", Georgia, serif;
+    font-weight:800; line-height:1.15;
+    margin:0; font-size: clamp(28px, 4.2vw, 42px);
+    letter-spacing:.3px;
+    text-wrap:balance;
+  }
+  p.lead{margin: 6px 0 20px; color:var(--muted);}
+  .quote{
+    margin: 18px 0 6px;
+    font-size: clamp(22px, 3.5vw, 34px);
+    font-weight:600;
+    letter-spacing:.2px;
+    text-wrap:pretty;
+  }
+  .author{opacity:.8; font-style:italic; margin-bottom: 14px}
+  .pillbar{display:flex; flex-wrap:wrap; gap:10px; margin-top:18px;}
+  .btn{
+    appearance:none; border:none; cursor:pointer;
+    padding:12px 16px; border-radius:14px;
+    background: linear-gradient(135deg, var(--glass-strong), rgba(255,255,255,.05));
+    color:inherit; font-weight:700;
+    backdrop-filter: blur(8px);
+    border:1px solid rgba(255,255,255,.35);
+    transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+    box-shadow: 0 6px 20px rgba(0,0,0,.12);
+    display:flex; align-items:center; gap:10px;
+  }
+  .btn:hover{transform: translateY(-2px)}
+  .btn:active{transform: translateY(0)}
+  .btn.primary{box-shadow: 0 14px 36px rgba(34,211,238,.35)}
+  .tiny{font-size:12px; opacity:.8}
+  .switch{margin-left:auto; display:flex; align-items:center; gap:8px;}
+  .switch input{accent-color: var(--accent); width:42px; height:22px}
+  .footer{text-align:center; margin-top:16px; opacity:.8; font-size:13px;}
+  details{
+    margin-top: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.25);
+    border-radius: 16px; padding: 14px 16px;
+  }
+  summary{cursor:pointer; font-weight:700}
+  .list{display:grid; gap:10px; margin-top:10px}
+  .row{
+    display:flex; gap:10px; align-items:center; justify-content:space-between;
+    padding:8px 10px; border-radius:12px; background: rgba(255,255,255,.06);
+  }
+  .grow{flex:1; min-width:0}
+  .tools{display:flex; gap:8px}
+  .fade-in{animation: fade .45s ease both}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+</style>
+</head>
+<body>
+<div class="sky"></div>
+<div class="blob"></div>
+<div class="blob"></div>
+<div class="blob"></div>
+
+<header>
+  <span class="dot"></span>
+  <b>Цитатогенератор</b>
+  <span class="tiny">v1.0</span>
+</header>
+
+<div class="wrap">
+  <main>
+    <section class="card" id="card" aria-live="polite">
+      <div class="title">
+        <div class="logo">Q</div>
+        <div>
+          <h1>Вдохновляйся красивыми цитатами</h1>
+          <p class="lead">Нажми кнопку — получи новую мысль. Добавляй свои цитаты, копируй и делись.</p>
+        </div>
+      </div>
+
+      <div class="quote" id="quote">«Красота начинается в момент, когда ты решаешь быть собой.»</div>
+      <div class="author" id="author">— Коко Шанель</div>
+
+      <div class="pillbar">
+        <button class="btn primary" id="newBtn">✨ Новая цитата</button>
+        <button class="btn" id="copyBtn">📋 Копировать</button>
+        <button class="btn" id="saveBtn">➕ Добавить свою</button>
+        <button class="btn" id="shareBtn">🔗 Поделиться</button>
+        <label class="switch tiny" title="Автогенерация каждые 10 секунд">
+          <input type="checkbox" id="autoToggle"> авто
+        </label>
+      </div>
+
+      <details>
+        <summary>История и свои цитаты</summary>
+        <div class="list" id="history"></div>
+      </details>
+
+      <p class="footer tiny">Подсказка: нажми <b>G</b> для генерации, <b>C</b> — копировать.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+const $ = (sel)=>document.querySelector(sel);
+const $$ = (sel)=>document.querySelectorAll(sel);
+
+const PRESET_QUOTES = [
+  ["Будь изменением, которое хочешь видеть в мире.","Махатма Ганди"],
+  ["Сложности закаляют характер.","Уинстон Черчилль"],
+  ["Мы — это то, что делаем постоянно. Следовательно, совершенство — не действие, а привычка.","Аристотель"],
+  ["Если не можешь лететь — беги, если не можешь бежать — иди, если не можешь идти — ползи, но что бы ни было — продвигайся вперёд.","Мартин Лютер Кинг"],
+  ["Не бойся медленно идти, бойся стоять на месте.","Китайская пословица"],
+  ["Счастье — это путь, а не пункт назначения.","Будда"],
+  ["Там, где внимание — там и энергия.","Тони Роббинс"],
+  ["Делай, что можешь, с тем, что имеешь, там, где ты есть.","Теодор Рузвельт"],
+  ["Тишина — это место, где рождаются лучшие идеи.","Неизвестный"],
+  ["Успех — это сумма небольших усилий, повторяемых изо дня в день.","Роберт Колльер"]
+];
+
+const PARTS_A = ["Смелость", "Терпение", "Доброта", "Тишина", "Любопытство", "Дисциплина", "Фокус"];
+const PARTS_B = ["растит", "открывает", "направляет", "умножает", "очищает", "ускоряет", "укрепляет"];
+const PARTS_C = ["талант", "путь", "внимание", "результат", "сердце", "мысли", "мечту"];
+
+const STORAGE_KEY = "qgen.userQuotes.v1";
+const HISTORY_KEY = "qgen.history.v1";
+
+let userQuotes = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(userQuotes));
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 50)));
+}
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function synthQuote(){
+  const text = `${pick(PARTS_A)} ${pick(PARTS_B)} ${pick(PARTS_C)}.`;
+  const author = "— Генератор";
+  return [text, author];
+}
+
+function nextQuote(){
+  const pools = [...PRESET_QUOTES, ...userQuotes];
+  const useSynthetic = Math.random() < 0.55;
+  const pair = useSynthetic ? synthQuote() : pick(pools);
+  showQuote(pair[0], pair[1]);
+  confetti();
+  addHistory(pair[0], pair[1]);
+}
+
+function showQuote(q, a){
+  $("#quote").textContent = `«${q.replace(/[«»]/g,"")}»`;
+  $("#author").textContent = a.startsWith("—")? a : `— ${a}`;
+  $("#card").classList.remove("fade-in");
+  void $("#card").offsetWidth;
+  $("#card").classList.add("fade-in");
+}
+
+function addHistory(q,a){
+  history.unshift({q,a,ts:Date.now()});
+  history = history.slice(0, 30);
+  renderHistory();
+  saveState();
+}
+
+function renderHistory(){
+  const list = $("#history");
+  list.innerHTML = "";
+  history.forEach((item, i)=>{
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `<div class="grow tiny">«${item.q}» <i>${item.a}</i></div>
+      <div class="tools">
+        <button class="btn tiny" data-copy="${i}">копировать</button>
+        <button class="btn tiny" data-use="${i}">показать</button>
+      </div>`;
+    list.appendChild(row);
+  });
+  list.querySelectorAll("[data-copy]").forEach(btn=>btn.onclick = ()=>{
+    const i = +btn.dataset.copy; copyText(`«${history[i].q}» ${history[i].a}`);
+  });
+  list.querySelectorAll("[data-use]").forEach(btn=>btn.onclick = ()=>{
+    const i = +btn.dataset.use; showQuote(history[i].q, history[i].a);
+  });
+}
+
+function copyText(text){
+  navigator.clipboard.writeText(text).then(()=> flash("Скопировано!"));
+}
+
+function flash(msg){
+  const el = document.createElement("div");
+  el.textContent = msg;
+  Object.assign(el.style, {
+    position:"fixed", inset:"auto 50% 28px auto", transform:"translateX(-50%)",
+    background:"rgba(0,0,0,.6)", color:"#fff", padding:"10px 14px",
+    borderRadius:"12px", backdropFilter:"blur(6px)", zIndex:9999, boxShadow:"0 8px 24px rgba(0,0,0,.2)"
+  });
+  document.body.appendChild(el);
+  setTimeout(()=> el.remove(), 1200);
+}
+
+function confetti(){
+  const n = 20 + Math.floor(Math.random()*20);
+  for(let i=0;i<n;i++){
+    const span = document.createElement("span");
+    span.textContent = ["✦","✺","★","•","❖"][Math.floor(Math.random()*5)];
+    Object.assign(span.style, {
+      position:"fixed",
+      left: (window.innerWidth/2 + (Math.random()-0.5)*240) + "px",
+      top: (window.innerHeight/2 - 40) + "px",
+      fontSize: (12+Math.random()*22)+"px",
+      opacity: 1,
+      pointerEvents:"none",
+      transition: "transform 1.2s ease, opacity 1.2s ease",
+      zIndex: 1000
+    });
+    document.body.appendChild(span);
+    requestAnimationFrame(()=>{
+      span.style.transform = `translate(${(Math.random()-0.5)*400}px, ${200+Math.random()*200}px) rotate(${(Math.random()-0.5)*120}deg)`;
+      span.style.opacity = 0;
+    });
+    setTimeout(()=> span.remove(), 1300);
+  }
+}
+
+$("#newBtn").onclick = nextQuote;
+$("#copyBtn").onclick = ()=> copyText(`${$("#quote").textContent} ${$("#author").textContent}`);
+$("#saveBtn").onclick = async ()=>{
+  const q = prompt("Введи текст цитаты:");
+  if(!q) return;
+  const a = prompt("Автор (можно оставить пустым):") || "Неизвестный";
+  userQuotes.push([q, a]);
+  addHistory(q, a);
+  saveState();
+  flash("Сохранено!");
+};
+$("#shareBtn").onclick = ()=>{
+  const text = `${$("#quote").textContent} ${$("#author").textContent}`;
+  if(navigator.share){
+    navigator.share({text}).catch(()=>{});
+  }else{
+    copyText(text);
+  }
+};
+$("#autoToggle").onchange = (e)=>{
+  if(e.target.checked){
+    nextQuote();
+    e.target._timer = setInterval(nextQuote, 10000);
+    flash("Автогенерация включена");
+  }else{
+    clearInterval(e.target._timer);
+    flash("Автогенерация выключена");
+  }
+};
+
+document.addEventListener("keydown", (ev)=>{
+  if(ev.key.toLowerCase()==="g") nextQuote();
+  if(ev.key.toLowerCase()==="c") $("#copyBtn").click();
+});
+
+renderHistory();
+</script>
+</body>
+</html>
